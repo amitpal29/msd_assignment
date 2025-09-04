@@ -13,7 +13,7 @@ from urllib.parse import quote_plus
 import argparse
 
 
-def save_text_response(api_url,data_dir):
+def save_text_response(api_url,data_dir,batch_dt):
     try:
         # Step 1: Create the full file path
         if not os.path.exists(data_dir):
@@ -27,8 +27,8 @@ def save_text_response(api_url,data_dir):
         os.makedirs(folder_path, exist_ok=True)
 
         # Step 2: Make a GET request to the API
-
-        previous_month = (now - relativedelta(months=1)).strftime("%Y-%m")
+        batch_date = datetime.strptime(batch_dt, "%Y-%m-%d")
+        previous_month = (batch_date - relativedelta(months=1)).strftime("%Y-%m")
         print(previous_month)
         api_url_with_date = f"{api_url}&yearMonth={previous_month}"
         print(api_url_with_date)
@@ -67,7 +67,7 @@ def load_data_to_table(folder_path, db_user, db_password, db_host, db_name):
             # print(df)
             dfs.append(df)
     final_df = pd.concat(dfs, ignore_index=True)
-    print(final_df)
+   
     # Database connection and DataFrame to SQL table
 
     CONNECTION_STRING = 'mysql+pymysql://{0}:{1}@{2}:3306/{3}'.format(db_user, db_password, db_host, db_name)
@@ -79,15 +79,15 @@ def load_data_to_table(folder_path, db_user, db_password, db_host, db_name):
 
 
     # Step 2: Write the DataFrame to the database
-    final_df.to_sql('currency_rates_ranges', con=engine, if_exists='replace', index=False)
+    final_df.to_sql('stage_fx_rates', con=engine, if_exists='replace', index=False)
 
     # Print the DataFrame to display the tabular data
-    print("Successfully wrote DataFrame to table currency_rates_ranges")
+    print("Successfully wrote DataFrame to table stage_fx_rates")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Script load data in raw tables"
+        description="Script load data in raw table from API"
     )
     parser.add_argument("--DB_USER", required=True, type=str)
     parser.add_argument("--DB_PASSWORD", required=True, type=str)
@@ -95,6 +95,7 @@ if __name__ == "__main__":
     parser.add_argument("--DB_NAME", required=True, type=str)
     parser.add_argument("--api_url", required=True, type=str)
     parser.add_argument("--data_dir", required=True, type=str)
+    parser.add_argument("--batch_dt", required=True, type=str)
     args = parser.parse_args()
 
     db_user = args.DB_USER
@@ -103,6 +104,7 @@ if __name__ == "__main__":
     db_name = args.DB_NAME
     api_url = args.api_url
     data_dir = args.data_dir
+    batch_dt = args.batch_dt
 
-folder_path = save_text_response(api_url, data_dir)
+folder_path = save_text_response(api_url, data_dir,batch_dt)
 load_data_to_table(folder_path, db_user, db_password, db_host, db_name)
