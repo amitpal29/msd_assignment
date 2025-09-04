@@ -19,10 +19,7 @@ def save_text_response(api_url,data_dir,batch_dt):
         if not os.path.exists(data_dir):
             os.makedirs(data_dir)
 
-        now = datetime.now()
-        date_time = now.strftime("%m%d%Y%H%M%S")
-        folder = datetime.now().strftime("%Y-%m-%d")
-        folder_path = os.path.join(data_dir, folder)
+        folder_path = os.path.join(data_dir, batch_dt)
         print(folder_path)
         os.makedirs(folder_path, exist_ok=True)
 
@@ -79,7 +76,7 @@ def load_data_to_table(folder_path, db_user, db_password, db_host, db_name):
 
 
     # Step 2: Write the DataFrame to the database
-    final_df.to_sql('stage_fx_rates', con=engine, if_exists='replace', index=False)
+    final_df.to_sql('stage_fx_rates', con=engine, if_exists='append', index=False)
 
     # Print the DataFrame to display the tabular data
     print("Successfully wrote DataFrame to table stage_fx_rates")
