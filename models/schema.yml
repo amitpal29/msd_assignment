@@ -1,0 +1,8 @@
+
+version: 2
+
+sources:
+  - name: cnbdb
+    schema: cnbdb
+    tables:
+      - name: stage_fx_rates
